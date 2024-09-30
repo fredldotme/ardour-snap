@@ -1,0 +1,151 @@
+name: ardour-snap
+adopt-info: ardour
+summary: Digital Audio Workstation
+description: |
+  Record, Edit, and Mix on Linux, macOS and Windows
+  
+  Ardour is an open source, collaborative effort of a worldwide team including musicians, programmers, and professional recording engineers. Development is transparent — anyone can watch our work as it happens. Like a good piece of vintage hardware, you can open the box and look inside. Of course, you don't have to … but one day the fact that anybody can will be useful.
+  This openness forces a kind of integrity on the project that is hard to find in proprietary software, and helps us to focus on issues and features that matter to our users rather than stuff that just looks good in advertisements.
+  
+  This is an unofficial Snap package of Ardour, provided for Snap-capable environments.
+
+license: GPL-2.0
+grade: stable
+confinement: strict
+base: core22
+compression: lzo
+
+architectures:
+  - build-on: [ amd64 ]
+    build-for: [ amd64 ]
+  - build-on: [ arm64 ]
+    build-for: [ arm64 ]
+
+plugs:
+  graphics-core22:
+    interface: content
+    target: $SNAP/graphics
+    default-provider: mesa-core22
+
+layout:
+  /usr/share/libdrm:
+    bind: $SNAP/graphics/libdrm
+  /usr/share/drirc.d:
+    symlink: $SNAP/graphics/drirc.d
+  /usr/share/X11/XErrorDB:
+    symlink: $SNAP/graphics/X11/XErrorDB
+  /usr/share/X11/locale:
+    symlink: $SNAP/graphics/X11/locale
+  /usr/share/zenity:
+    symlink: $SNAP/usr/share/zenity
+  /usr/share/alsa:
+    bind: $SNAP/usr/share/alsa
+  /etc/alsa:
+    bind: $SNAP/etc/alsa
+
+apps:
+  ardour:
+    environment:
+      LADSPA_PATH: $SNAP_USER_COMMON/ladspa
+      LV2_PATH: $SNAP_USER_COMMON/lv2
+      LXVST_PATH: $SNAP_USER_COMMON/lxvst
+      LD_LIBRARY_PATH: $SNAP/usr/lib/ardour8:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/pulseaudio:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET
+    command: bin/graphics-core22-wrapper $SNAP/usr/bin/ardour8
+    plugs: [ home, removable-media, audio-record, audio-playback, alsa, jack1, wayland, x11, desktop, desktop-legacy, gsettings, opengl, hardware-observe, raw-usb ]
+
+lint:
+  ignore:
+    - library
+
+parts:
+  ardour:
+    source: https://github.com/Ardour/ardour.git
+    source-type: git
+    source-tag: "8.7"
+    plugin: nil
+    build-environment:
+      - CC: /usr/bin/clang
+      - CXX: /usr/bin/clang++
+    build-packages:
+      - clang
+      - python-is-python3
+      - python3
+      - pkg-config
+      - libboost-dev
+      - libasound2-dev
+      - libjack-dev
+      - libpulse-dev
+      - libglib2.0-dev
+      - libglibmm-2.4-dev
+      - libsndfile1-dev
+      - libcurl4-openssl-dev
+      - libarchive-dev
+      - liblo-dev
+      - libtag1-dev
+      - vamp-plugin-sdk
+      - lv2-dev
+      - librubberband-dev
+      - libsamplerate0-dev
+      - libsigc++-2.0-dev
+      - libfftw3-dev
+      - libudev-dev
+      - libusb-1.0-0-dev
+      - libaubio-dev
+      - libpng-dev
+      - libpango1.0-dev
+      - libcairomm-1.0-dev
+      - libpangomm-1.4-dev
+      - libxml2-dev
+      - libserd-dev
+      - libsord-dev
+      - libsratom-dev
+      - liblilv-dev
+    stage-packages:
+      - libasound2
+      - libjack0
+      - libpulse0
+      - libglib2.0-0
+      - libglibmm-2.4-1v5
+      - libsndfile1
+      - libcurl4
+      - libarchive13
+      - liblo7
+      - libtag1v5
+      - libvamp-hostsdk3v5
+      - libvamp-sdk2v5
+      - librubberband2
+      - libsamplerate0
+      - libsigc++-2.0-0v5
+      - libfftw3-double3
+      - libudev1
+      - libusb-1.0-0
+      - libaubio5
+      - libpng16-16
+      - libpango-1.0-0
+      - libcairomm-1.0-1v5
+      - libpangomm-1.4-1v5
+      - libxml2
+      - libserd-0-0
+      - libsord-0-0
+      - libsratom-0-0
+      - liblilv-0-0
+    override-build: |
+      cd $CRAFT_PART_SRC_WORK
+      ./waf configure --prefix=/usr --no-phone-home --optimize
+      ./waf
+      ./waf install --destdir=$CRAFT_PART_INSTALL
+      craftctl set version="$(git describe --abbrev=0 --tags)"
+      craftctl default
+    override-prime: |
+      craftctl default
+      sed -i "s|/usr/|/snap/ardour-snap/current/usr/|g" $CRAFT_PRIME/usr/bin/ardour8
+      exit 0
+  graphics-core22:
+    after: [ ardour ]
+    source: https://github.com/MirServer/graphics-core.git
+    plugin: dump
+    override-prime: |
+      craftctl default
+      ${CRAFT_PART_SRC}/bin/graphics-core22-cleanup mesa-core22 nvidia-core22
+    prime:
+    - bin/graphics-core22-wrapper
