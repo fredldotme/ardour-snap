@@ -4,6 +4,10 @@ summary: Digital Audio Workstation
 description: |
   Record, Edit, and Mix on Linux, macOS and Windows
   
+  - Record: Grab yourself a nice audio interface. Plug in a microphone or a keyboard. Add a track. Press record. Got it.
+  - Edit: Cut, move, stretch, copy, paste, delete, align, trim, crossfade, rename, snapshot, zoom, transpose, quantize, swing, drag, drop.
+  - Mix: Mute, solo, fader, automate, EQ, dynamics, insert, send, pre-fader, post-fader, sync, monitor, isolate.
+  
   Ardour is an open source, collaborative effort of a worldwide team including musicians, programmers, and professional recording engineers. Development is transparent — anyone can watch our work as it happens. Like a good piece of vintage hardware, you can open the box and look inside. Of course, you don't have to … but one day the fact that anybody can will be useful.
   This openness forces a kind of integrity on the project that is hard to find in proprietary software, and helps us to focus on issues and features that matter to our users rather than stuff that just looks good in advertisements.
   
