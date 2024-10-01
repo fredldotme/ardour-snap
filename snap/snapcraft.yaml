@@ -143,6 +143,7 @@ parts:
     override-prime: |
       craftctl default
       sed -i "s|/usr/|/snap/ardour-snap/current/usr/|g" $CRAFT_PRIME/usr/bin/ardour8
+      rm $CRAFT_PRIME/usr/bin/ardour8-*
       exit 0
   graphics-core22:
     after: [ ardour ]
