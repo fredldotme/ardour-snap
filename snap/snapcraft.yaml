@@ -65,7 +65,7 @@ parts:
   ardour:
     source: https://github.com/Ardour/ardour.git
     source-type: git
-    source-tag: "8.10"
+    source-tag: "8.12"
     plugin: nil
     build-environment:
       - CC: /usr/bin/clang
