@@ -16,30 +16,24 @@ description: |
 license: GPL-2.0
 grade: stable
 confinement: strict
-base: core22
+base: core24
 compression: lzo
 
-architectures:
-  - build-on: [ amd64 ]
-    build-for: [ amd64 ]
-  - build-on: [ arm64 ]
-    build-for: [ arm64 ]
+platforms:
+  arm64:
+    build-on: [arm64]
+  amd64:
+    build-on: [amd64]
 
 plugs:
-  graphics-core22:
+  gpu-2404:
     interface: content
-    target: $SNAP/graphics
-    default-provider: mesa-core22
+    target: $SNAP/gpu-2404
+    default-provider: mesa-2404
 
 layout:
-  /usr/share/libdrm:
-    bind: $SNAP/graphics/libdrm
-  /usr/share/drirc.d:
-    symlink: $SNAP/graphics/drirc.d
   /usr/share/X11/XErrorDB:
-    symlink: $SNAP/graphics/X11/XErrorDB
-  /usr/share/X11/locale:
-    symlink: $SNAP/graphics/X11/locale
+    symlink: $SNAP/gpu-2404/X11/XErrorDB
   /usr/share/zenity:
     symlink: $SNAP/usr/share/zenity
   /usr/share/alsa:
@@ -54,8 +48,8 @@ apps:
       LV2_PATH: $SNAP_USER_COMMON/lv2
       LXVST_PATH: $SNAP_USER_COMMON/lxvst
       LD_LIBRARY_PATH: $SNAP/usr/lib/ardour8:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/pulseaudio:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET
-    command-chain: [ pulseenv ]
-    command: bin/graphics-core22-wrapper $SNAP/usr/bin/ardour8
+    command-chain: [ bin/gpu-2404-wrapper, bin/pulseenv ]
+    command: usr/bin/ardour9
     plugs: [ home, removable-media, audio-record, audio-playback, alsa, jack1, wayland, x11, desktop, desktop-legacy, gsettings, opengl, hardware-observe, raw-usb ]
 
 lint:
@@ -66,7 +60,7 @@ parts:
   ardour:
     source: https://github.com/Ardour/ardour.git
     source-type: git
-    source-tag: "8.12"
+    source-tag: "9.2"
     plugin: nil
     build-environment:
       - CC: /usr/bin/clang
@@ -143,21 +137,25 @@ parts:
       craftctl default
     override-prime: |
       craftctl default
-      sed -i "s|/usr/|/snap/ardour-snap/current/usr/|g" $CRAFT_PRIME/usr/bin/ardour8
-      rm $CRAFT_PRIME/usr/bin/ardour8-*
+      sed -i "s|/usr/|/snap/ardour-snap/current/usr/|g" $CRAFT_PRIME/usr/bin/ardour9
+      rm $CRAFT_PRIME/usr/bin/ardour9-*
       exit 0
 
   pulseenv:
     after: [ ardour ]
     source: snap/local
     plugin: dump
+    organize:
+      pulseenv: bin/
 
-  graphics-core22:
+  gpu-2404:
     after: [ ardour, pulseenv ]
-    source: https://github.com/MirServer/graphics-core.git
+    source: https://github.com/canonical/gpu-snap.git
     plugin: dump
     override-prime: |
       craftctl default
-      ${CRAFT_PART_SRC}/bin/graphics-core22-cleanup mesa-core22 nvidia-core22
+      ${CRAFT_PART_SRC}/bin/gpu-2404-cleanup mesa-2404
+      # Workaround for https://bugs.launchpad.net/snapd/+bug/2055273
+      mkdir -p "${CRAFT_PRIME}/gpu-2404"
     prime:
-    - bin/graphics-core22-wrapper
+      - bin/gpu-2404-wrapper
