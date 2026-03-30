@@ -54,6 +54,7 @@ apps:
       LV2_PATH: $SNAP_USER_COMMON/lv2
       LXVST_PATH: $SNAP_USER_COMMON/lxvst
       LD_LIBRARY_PATH: $SNAP/usr/lib/ardour8:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET/pulseaudio:$SNAP/usr/lib/$CRAFT_ARCH_TRIPLET
+    command-chain: [ pulseenv ]
     command: bin/graphics-core22-wrapper $SNAP/usr/bin/ardour8
     plugs: [ home, removable-media, audio-record, audio-playback, alsa, jack1, wayland, x11, desktop, desktop-legacy, gsettings, opengl, hardware-observe, raw-usb ]
 
@@ -145,8 +146,14 @@ parts:
       sed -i "s|/usr/|/snap/ardour-snap/current/usr/|g" $CRAFT_PRIME/usr/bin/ardour8
       rm $CRAFT_PRIME/usr/bin/ardour8-*
       exit 0
-  graphics-core22:
+
+  pulseenv:
     after: [ ardour ]
+    source: snap/local
+    plugin: dump
+
+  graphics-core22:
+    after: [ ardour, pulseenv ]
     source: https://github.com/MirServer/graphics-core.git
     plugin: dump
     override-prime: |

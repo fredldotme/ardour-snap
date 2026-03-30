@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+mkdir -p $XDG_RUNTIME_DIR/pulse
+ln -sf ../../pulse/native $XDG_RUNTIME_DIR/pulse/native
+
+exec "$@"
